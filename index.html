@@ -1,14 +1,19 @@
 <html>
 <head>
 <script>
-  window.addEventListener('message', function(event) {
-	  var t = "Message received from the child: " + event.data+"<br>";
-	  document.getElementById("myDiv").innerHTML += t;
-  });
+window.addEventListener('message', function(event) {
+        var t = "Message received from the child: " + event.data+"<br>";
+        document.getElementById("myDiv").innerHTML += t;
+});
+
+window.addEventListener("DOMContentLoaded", (event) => {
+    console.log("Hello iframe");
+    document.getElementById("myFrame").postMessage("Hello iframe", "*");
+});
 </script>
 </head>
 	<body>
-		<iframe src="https://wangkui0508.github.io/iframe.html"></iframe>
+		<iframe id="myFrame" src="https://wangkui0508.github.io/iframe.html"></iframe>
 		<div id="myDiv">
 		</div>
 	</body>

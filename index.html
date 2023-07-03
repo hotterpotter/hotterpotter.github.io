@@ -2,9 +2,9 @@
 <head>
 <script>
 window.addEventListener('message', function(event) {
-    var t = "Message received from the child: " + event.data+"<br>";
+    var t = "Message received from the child: " + event.data + " | " + event.origin + "<br>";
     document.getElementById("myDiv").innerHTML += t;
-    document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe", "*");
+    document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe "+event.origin, "*");
 });
 
 </script>

@@ -1,0 +1,15 @@
+<html>
+<head>
+<script>
+  window.addEventListener('message', function(event) {
+	  var t = "Message received from the child: " + event.data+"<br>";
+	  document.getElementById("myDiv").innerHTML += t;
+  });
+</script>
+</head>
+	<body>
+		<iframe src="https://wangkui0508.github.io/iframe.html"></iframe>
+		<div id="myDiv">
+		</div>
+	</body>
+</html>

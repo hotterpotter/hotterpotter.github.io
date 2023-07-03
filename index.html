@@ -2,7 +2,7 @@
 <head>
 <script>
 window.addEventListener('message', function(event) {
-    if(window.location.href.startsWith(e.origin)) {
+    if(window.location.href.startsWith(event.origin)) {
         return; //ignore self-generated messages
     }
 	

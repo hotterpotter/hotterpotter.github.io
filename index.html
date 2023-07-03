@@ -2,6 +2,10 @@
 <head>
 <script>
 window.addEventListener('message', function(event) {
+    if(window.location.href.startsWith(e.origin)) {
+        return; //ignore self-generated messages
+    }
+	
     var t = "Message received from the child: " + event.data + " | " + event.origin + "<br>";
     document.getElementById("myDiv").innerHTML += t;
     document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe "+event.origin, "*");

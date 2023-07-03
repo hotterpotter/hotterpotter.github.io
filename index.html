@@ -2,7 +2,7 @@
 <head>
 <script>
 window.addEventListener('message', function(event) {
-    if(window.location.href.startsWith(event.origin)) {
+    if(event.origin != "https://wangkui0508.github.io") {
         return; //ignore self-generated messages
     }
 	

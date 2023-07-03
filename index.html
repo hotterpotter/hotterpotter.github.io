@@ -2,14 +2,11 @@
 <head>
 <script>
 window.addEventListener('message', function(event) {
-        var t = "Message received from the child: " + event.data+"<br>";
-        document.getElementById("myDiv").innerHTML += t;
+    var t = "Message received from the child: " + event.data+"<br>";
+    document.getElementById("myDiv").innerHTML += t;
+    document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe", "*");
 });
 
-window.addEventListener("DOMContentLoaded", (event) => {
-    console.log("Hello iframe");
-    document.getElementById("myFrame").contentWindow.postMessage("Hello iframe", "*");
-});
 </script>
 </head>
 	<body>

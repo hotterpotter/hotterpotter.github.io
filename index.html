@@ -8,7 +8,7 @@ window.addEventListener('message', function(event) {
 
 window.addEventListener("DOMContentLoaded", (event) => {
     console.log("Hello iframe");
-    document.getElementById("myFrame").postMessage("Hello iframe", "*");
+    document.getElementById("myFrame").contentWindow.postMessage("Hello iframe", "*");
 });
 </script>
 </head>

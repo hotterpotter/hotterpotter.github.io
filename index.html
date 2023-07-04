@@ -117,6 +117,10 @@ IS WITH YOU.</p>
     </p>
 </div>
 
+<hr>
+<div id="debugDiv">
+</div>
+
 <div id="myModal" class="modal" style="display: none">
     <div class="modal-content">
         <p id="modalContent" style="text-align: center; overflow-wrap: break-word"></p>
@@ -212,7 +216,9 @@ async function checkOrigin(e) {
         return "ok";
     }
     if(!IsPC()) {
-        const targetURL = location.protocol+"//"+location.host+"/?conn="+encodeURI(e.origin);
+        const originURL = new URL(e.origin);
+        const origin = originURL.protocol+"//"+originURL.host;
+        const targetURL = location.protocol+"//"+location.host+"/?conn="+encodeURI(origin);
         const newWindow = window.open(targetURL, "", "width=450,height=700");
         window.AddrRespPort = e.ports[0]
         if(newWindow === null) {
@@ -245,15 +251,22 @@ async function connectWallet() {
     const addr = accounts[0];
     window.EVMAddress = addr;
 
+    var debugDiv = document.getElementById("debugDiv");
+
     const text="=!= 💰pay4.best wallet💰 =!=\n"+addr+"\nI hereby grant this website the permission to access my 💰pay4.best wallet💰"
     const msg = utils.textToUtf8Hex(text);
     console.log("246 personal_sign");
     const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
+    debugDiv.innerText += "A<br>";
     if(!signature) {return;}
+    debugDiv.innerText += "B<br>";
     const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
+    debugDiv.innerText += "C<br>";
     const privKeyArr = utils.wifToPrivateKey(wif);
     //console.log("H", utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh"));
+    debugDiv.innerText += "D<br>";
     await initWallet(wif);
+    debugDiv.innerText += "E<br>";
     WalletChannel.postMessage(wif);
 }
 
@@ -364,10 +377,7 @@ async function initPage() {
        document.body.style.zoom = 1.36;
     }
     const params = new URL(window.location.href).searchParams;
-    var connSrc = params.get('conn');
-    if(connSrc.endsWith("/")) {
-        connSrc = connSrc.substr(0, connSrc.length-1)
-    }
+    const connSrc = params.get('conn');
     const reqID = params.get('req');
     if(connSrc) {
         document.getElementById("connSrc").innerText = decodeURI(connSrc);
@@ -435,7 +445,9 @@ async function handleMessageAsIframe(e) {
     const reqID = await getObjectHash(tx);
     tx.origin = e.origin; // add the origin site
     window.TxMap.set(reqID, tx);
-    let targetURL = location.protocol+"//"+location.host+"/?origin="+encodeURI(e.origin)+"&req="+reqID;
+    const originURL = new URL(e.origin);
+    const origin = originURL.protocol+"//"+originURL.host;
+    let targetURL = location.protocol+"//"+location.host+"/?origin="+encodeURI(origin)+"&req="+reqID;
     var newWindow = window.open(targetURL, '', 'width=450,height=700');
     e.ports[0].postMessage({reqID: reqID, ok: newWindow !== null}); //return the reqID and window.open result
 

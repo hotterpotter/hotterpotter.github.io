@@ -108,10 +108,6 @@ IS WITH YOU.</p>
     <p id="outputs"></p>
 </div>
 
-<div id="hiddenDiv" style="padding: 10px; display: none">
-	<a id="myLink"></a>
-</div>
-
 <div id="withConnReq" style="padding: 10px; display: none">
     <p><b id="connSrc"></b> wants to connect <br>to your Pay4Best wallet.<br><br></p>
     <p style="text-align: center">
@@ -211,7 +207,7 @@ async function checkOrigin(e) {
     const key = "lastvisit"+e.origin;
     const ts = localStorage.getItem(key);
     const cashAddr = localStorage.getItem("CashAddr");
-    //console.log("in checkOrigin", ts, localStorage.getItem(key));
+    console.log("in checkOrigin", ts, key, cashAddr);
     if(cashAddr && ts && Date.now() - ts < 24*3600*1000 /* visited in last 24 hours*/) {
         return "ok";
     }
@@ -220,10 +216,13 @@ async function checkOrigin(e) {
         const newWindow = window.open(targetURL, "", "width=450,height=700");
         window.AddrRespPort = e.ports[0]
         if(newWindow === null) {
-            return "conn-window-not-opened";
+           return "conn-window-not-opened";
         } else {
-            return "conn-window-opened";
+           return "conn-window-opened";
         }
+        //var myLink = document.getElementById("myLink");
+        //myLink.href = location.protocol+"//"+location.host+"/?conn="+encodeURI(window.location.href);
+        //myLink.click();
     }
     const text="I allow "+e.origin+" to connect to my pay4.best wallet."
     const msg = utils.textToUtf8Hex(text);
@@ -348,6 +347,7 @@ function refuseToConn() {
 
 function okToConn() {
     const key = "lastvisit"+document.getElementById("connSrc").innerText;
+    console.log("why", key, Date.now());
     localStorage.setItem(key, Date.now());
     const cashAddr = localStorage.getItem("CashAddr");
     if(cashAddr) {
@@ -364,7 +364,10 @@ async function initPage() {
        document.body.style.zoom = 1.36;
     }
     const params = new URL(window.location.href).searchParams;
-    const connSrc = params.get('conn');
+    var connSrc = params.get('conn');
+    if(connSrc.endsWith("/")) {
+        connSrc = connSrc.substr(0, connSrc.length-1)
+    }
     const reqID = params.get('req');
     if(connSrc) {
         document.getElementById("connSrc").innerText = decodeURI(connSrc);

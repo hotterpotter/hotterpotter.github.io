@@ -66,7 +66,7 @@
 
 </style>
 </head>
-<body style="margin: 0 auto; padding: 0; width: 380px;">
+<body style="margin: 0 auto; padding: 0; width: 450px;">
 <div id="withoutTxReq" style="padding: 10px; display: none">
 	<h2 class="title is-4" style="text-align: center"><span style="vertical-align: sub;"><img width="30" height="30" src="assets/favicon.svg"></span>&nbsp;Pay4.Best Wallet</h4>
 	<p>Pay4.Best is a bridging wallet which derives a private key from a Web3 wallet's "personal_sign" result and uses it to sign BCH transactions. It's <a href="https://github.com/pay4best/pay4best.github.io">opensourced</a> under GPLv3.</p>
@@ -94,14 +94,11 @@ IS WITH YOU.</p>
 </div>
 
 <div id="withTxReq" style="padding: 10px; display: none">
-    <div class="columns">
-      <div class="column">
-        <button class="button is-danger" onclick="refuse()">Refuse</button><br>
-      </div>
-      <div class="column">
-        <button class="button is-success" onclick="signTx()">Sign It!</button><br><br>
-      </div>
-    </div>
+    <p style="text-align: center">
+        <button class="button is-danger" onclick="refuse()" style="width: 80px">Refuse</button>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button class="button is-success" onclick="signTx()" style="width: 80px">Sign It!</button>
+    </p>
     <p><b>Signing Request From:</b><br> <span id="origin"></span></p>
     <p><b>Current Account:</b><br> <span id="currAccount"></span></p>
     <p><b>Miner Fee:</b> <span id="minerFee"></span>satoshi</p>
@@ -109,6 +106,19 @@ IS WITH YOU.</p>
     <p id="inputs"></p>
     <p><b>OUTPUTS:</b></p>
     <p id="outputs"></p>
+</div>
+
+<div id="hiddenDiv" style="padding: 10px; display: none">
+	<a id="myLink"></a>
+</div>
+
+<div id="withConnReq" style="padding: 10px; display: none">
+    <p><b id="connSrc"></b> wants to connect <br>to your Pay4Best wallet.<br><br></p>
+    <p style="text-align: center">
+        <button class="button is-danger" onclick="refuseToConn()" style="width: 80px">Refuse</button>
+	&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+        <button class="button is-success" onclick="okToConn()" style="width: 80px">OK!</button>
+    </p>
 </div>
 
 <div id="myModal" class="modal" style="display: none">
@@ -119,6 +129,7 @@ IS WITH YOU.</p>
 </div>
 
 <script>
+const ConnRespChannel = new BroadcastChannel("CONNRESP");
 const WalletReqChannel = new BroadcastChannel("WALLETREQ");
 const WalletChannel = new BroadcastChannel("WALLET");
 const TxReqIDChannel = new BroadcastChannel("TXREQID");
@@ -188,6 +199,7 @@ async function initWallet(wif) {
     const cashAddr = utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh");
     const tokenAddr = utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkhWithTokens");
     const legacyAddr = utils.cashAddrToLegacy(cashAddr);
+    localStorage.setItem("CashAddr", cashAddr);
     document.getElementById("cashAddr").innerText = cashAddr.split(":")[1];
     document.getElementById("tokenAddr").innerText = tokenAddr.split(":")[1];
     document.getElementById("legacyAddr").innerText = legacyAddr;
@@ -195,29 +207,36 @@ async function initWallet(wif) {
     new QRious({element: document.getElementById("legacyAddrQR"), value: legacyAddr});
 }
 
-async function checkOrigin(origin) {
-    if(!window.WIF) {
-        await connectWallet();
-    }
-    if(!window.EVMAddress) {
-        const accounts = await window.ethereum.request({method: "eth_requestAccounts"});
-        const addr = accounts[0];
-        window.EVMAddress = addr;
-    }
-    const key = "lastvisit"+origin;
+async function checkOrigin(e) {
+    const key = "lastvisit"+e.origin;
     const ts = localStorage.getItem(key);
+    const cashAddr = localStorage.getItem("CashAddr");
     //console.log("in checkOrigin", ts, localStorage.getItem(key));
-    if(ts && Date.now() - ts < 24*3600*1000 /* visited in last 24 hours*/) {
-        return true;
+    if(cashAddr && ts && Date.now() - ts < 24*3600*1000 /* visited in last 24 hours*/) {
+        return "ok";
     }
-    const text="I allow "+origin+" to connect to my pay4.best wallet."
+    if(!IsPC()) {
+        const targetURL = location.protocol+"//"+location.host+"/?conn="+encodeURI(e.origin);
+        const newWindow = window.open(targetURL, "", "width=450,height=700");
+        window.AddrRespPort = e.ports[0]
+        if(newWindow === null) {
+            return "conn-window-not-opened";
+        } else {
+            return "conn-window-opened";
+        }
+    }
+    const text="I allow "+e.origin+" to connect to my pay4.best wallet."
     const msg = utils.textToUtf8Hex(text);
+    console.log("228 personal_sign");
+    if(!window.EVMAddress) {
+	 await connectWallet();
+    }
     const signature = await ethereum.request({method: "personal_sign", params: [msg, window.EVMAddress]});
     if(!signature) {
-        return false;
+        return "refuse-to-connect";
     } else {
         localStorage.setItem(key, Date.now());
-        return true;
+        return "ok";
     }
 }
 
@@ -229,6 +248,7 @@ async function connectWallet() {
 
     const text="=!= 💰pay4.best wallet💰 =!=\n"+addr+"\nI hereby grant this website the permission to access my 💰pay4.best wallet💰"
     const msg = utils.textToUtf8Hex(text);
+    console.log("246 personal_sign");
     const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
     if(!signature) {return;}
     const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
@@ -255,6 +275,7 @@ async function onLoaded(e) {
             window.setTimeout(async function() {
                 //if nobody broadcasted wif, connect to MetaMask to get it
                 if(!window.WIF) {
+                    console.log("273");
                     connectWallet();
                 }
                 await initPage(); //finaly we can init page with the wallet
@@ -263,8 +284,10 @@ async function onLoaded(e) {
     }
 
     window.ethereum?.on('accountsChanged', async (accounts) => {
-      //window.location.reload();
-      connectWallet();
+        //window.location.reload();
+        if(window.WIF) {
+            connectWallet();
+        }
     });
 }
 
@@ -318,6 +341,21 @@ function fillTxReq(inputs, sourceOutputs, outputs) {
     document.getElementById("withTxReq").style.display = "block";
 }
 
+function refuseToConn() {
+    window.close();
+    
+}
+
+function okToConn() {
+    const key = "lastvisit"+document.getElementById("connSrc").innerText;
+    localStorage.setItem(key, Date.now());
+    const cashAddr = localStorage.getItem("CashAddr");
+    if(cashAddr) {
+        ConnRespChannel.postMessage(cashAddr);
+    }
+    window.close();
+}
+
 async function initPage() {
     if(window.parent != window.self) {
         return; // I'm an iframe
@@ -326,8 +364,12 @@ async function initPage() {
        document.body.style.zoom = 1.36;
     }
     const params = new URL(window.location.href).searchParams;
+    const connSrc = params.get('conn');
     const reqID = params.get('req');
-    if(reqID) {
+    if(connSrc) {
+        document.getElementById("connSrc").innerText = decodeURI(connSrc);
+        document.getElementById("withConnReq").style.display = "block";
+    } else if(reqID) {
         const origin = decodeURI(params.get('origin'));
         document.getElementById("origin").innerText = origin;
 
@@ -353,20 +395,36 @@ async function handleMessageAsIframe(e) {
     if(window.location.href.startsWith(e.origin)) {
         return; //ignore self-generated messages
     }
-    if(!await checkOrigin(e.origin)) {
-        return; //the user refused to connect
+    console.log("EEE", e);
+    if(! e.data.Pay4BestWalletReq) {
+        return; //ignore non-pay4best messages
     }
+    const checkResult = await checkOrigin(e);
+    if(checkResult != "ok") {
+        console.log("EEEp", e.ports);
+        e.ports[0].postMessage(checkResult);
+        return;
+    }
+    console.log("A");
     var isPay4Best = (e.data?.Pay4BestWalletReq && e.ports && e.ports.length >= 1);
     if(!isPay4Best) {
         return;
     }
+    console.log("B");
     if(e.data.Pay4BestWalletReq.GetAddr) {
         if(window.WIF) {
+            console.log("C");
             const privKeyArr = utils.wifToPrivateKey(window.WIF);
             const cashAddr = utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh");
             e.ports[0].postMessage(cashAddr);
         } else {
-            e.ports[0].postMessage("wallet-not-init");
+            console.log("D");
+            const cashAddr = localStorage.getItem("CashAddr");
+            if(cashAddr) {
+                e.ports[0].postMessage(cashAddr);
+            } else {
+                e.ports[0].postMessage("wallet-not-init");
+            }
         }
         return;
     }
@@ -375,7 +433,7 @@ async function handleMessageAsIframe(e) {
     tx.origin = e.origin; // add the origin site
     window.TxMap.set(reqID, tx);
     let targetURL = location.protocol+"//"+location.host+"/?origin="+encodeURI(e.origin)+"&req="+reqID;
-    var newWindow = window.open(targetURL, '', 'width=380,height=700');
+    var newWindow = window.open(targetURL, '', 'width=450,height=700');
     e.ports[0].postMessage({reqID: reqID, ok: newWindow !== null}); //return the reqID and window.open result
 
     TxRespChannel.onmessage = function(evt) {
@@ -459,6 +517,12 @@ TxReqIDChannel.onmessage = function(evt) {
         TxReqChannel.postMessage({ReqID: evt.data, Tx: window.TxMap.get(evt.data)});
     }
 };
+
+ConnRespChannel.onmessage = function(evt) {
+    if(window.AddrRespPort) {
+        window.AddrRespPort.postMessage(evt.data);
+    }
+}
 
 if(window.parent != window.self) { // I'm an iframe
     window.addEventListener('message', handleMessageAsIframe);

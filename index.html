@@ -8,14 +8,18 @@ window.addEventListener('message', function(event) {
 	
     var t = "Message received from the child: " + event.data + " | " + event.origin + "<br>";
     document.getElementById("myDiv").innerHTML += t;
-    document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe "+event.origin, "*");
+    const channel = new MessageChannel();
+    document.getElementById("myFrame").contentWindow.postMessage("Hello to iframe "+event.origin, "*", [channel.port1]);
+    channel.port2.onmessage = function(event) {
+        document.getElementById("myDiv").innerHTML += "port2"+event.data;
+    }
 });
 
 </script>
 </head>
 	<body>
-		<iframe id="myFrame" src="https://wangkui0508.github.io/iframe7.html"></iframe>
-		<p>7</p>
+		<iframe id="myFrame" src="https://wangkui0508.github.io/iframe8.html"></iframe>
+		<p>8</p>
 		<div id="myDiv">
 		</div>
 	</body>

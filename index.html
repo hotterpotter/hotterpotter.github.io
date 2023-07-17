@@ -275,6 +275,7 @@ async function connectWallet() {
 	    const wifEnc = await aesGcmEncrypt(wif, passphrase);
             localStorage.setItem("WIF", wifEnc);
             localStorage.setItem("EVMAddress", window.EVMAddress);
+            window.history.back()
         }
     }
 }
@@ -389,13 +390,16 @@ function okToConn() {
     if(cashAddr) {
         ConnRespChannel.postMessage(cashAddr);
     }
+    const params = new URL(window.location.href).searchParams;
+    const origin = decodeURI(params.get('conn'));
+    window.location.href=origin
     window.close();
 }
 
 async function initPage() {
-    if(window.parent != window.self) {
-        return; // I'm an iframe
-    }
+    // if(window.parent != window.self) {
+    //     return; // I'm an iframe
+    // }
     //if(IsPC()) {
     //   document.body.style.zoom = 1.36;
     //}
@@ -428,7 +432,7 @@ async function initPage() {
 }
 
 async function handleMessageAsIframe(e) {
-    console.log("LLL", window.location.href, e.origin);
+    console.log("LLL", window.location.href, e.origin, e.data);
     if(window.location.href.startsWith(e.origin)) {
         return; //ignore self-generated messages
     }

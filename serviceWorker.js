@@ -4,7 +4,7 @@
 //     Categories: '++id, category',
 // });
 // db.Categories.toArray().then(data => document.body.innerText = data.length)
-
+console.log("service worker")
 const openDB = (callback) => {
     let req = indexedDB.open('FlexDB', 10);
     req.onerror = (err) => {

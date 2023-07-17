@@ -229,7 +229,7 @@ async function checkOrigin(e) {
     const ts = localStorage.getItem(key);
     const cashAddr = localStorage.getItem("CashAddr");
     console.log("in checkOrigin", ts, key, cashAddr);
-    alert(cashAddr + "|"+ts+ '|'+Date.now())
+    myAlert(cashAddr + "|"+ts+ '|'+Date.now())
     console.log(cashAddr, ts, Date.now())
     if(cashAddr && ts && Date.now() - ts < 24*3600*1000 /* visited in last 24 hours*/) {
         return "ok";
@@ -444,6 +444,7 @@ async function handleMessageAsIframe(e) {
         return; //ignore self-generated messages
     }
     console.log("EEE", e);
+    myAlert(e.data.Pay4BestWalletReq)
     if(! e.data.Pay4BestWalletReq) {
         return; //ignore non-pay4best messages
     }

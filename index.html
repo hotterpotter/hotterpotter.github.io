@@ -229,6 +229,7 @@ async function checkOrigin(e) {
     const ts = localStorage.getItem(key);
     const cashAddr = localStorage.getItem("CashAddr");
     console.log("in checkOrigin", ts, key, cashAddr);
+    alert(cashAddr + "|"+ts+ '|'+Date.now())
     console.log(cashAddr, ts, Date.now())
     if(cashAddr && ts && Date.now() - ts < 24*3600*1000 /* visited in last 24 hours*/) {
         return "ok";

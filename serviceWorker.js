@@ -35,6 +35,7 @@ self.addEventListener('install', event => {
     openDB()
 
     function readAll() {
+        broadcast.postMessage(1)
         var objectStore = DB.transaction('Categories').objectStore('Categories');
         objectStore.openCursor().onsuccess = function (event) {
             var cursor = event.target.result;
@@ -82,6 +83,7 @@ self.addEventListener('active', event => {
     openDB()
 
     function readAll() {
+        broadcast.postMessage(1)
         var objectStore = DB.transaction('Categories').objectStore('Categories');
         objectStore.openCursor().onsuccess = function (event) {
             var cursor = event.target.result;
@@ -128,6 +130,7 @@ self.addEventListener('message', event => {
     openDB()
 
     function readAll() {
+        broadcast.postMessage(1)
         var objectStore = DB.transaction('Categories').objectStore('Categories');
         objectStore.openCursor().onsuccess = function (event) {
             var cursor = event.target.result;
@@ -174,6 +177,7 @@ broadcast.onmessage = () => {
     openDB()
 
     function readAll() {
+        broadcast.postMessage(1)
         var objectStore = DB.transaction('Categories').objectStore('Categories');
         objectStore.openCursor().onsuccess = function (event) {
             var cursor = event.target.result;

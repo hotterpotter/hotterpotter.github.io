@@ -61,6 +61,7 @@
         // serviceWorker.getRegistration().then(function (sw) {
         //     return sw && sw.unregister();
         // }).then(() => {
+        console.log("navigator", navigator.serviceWorker)
         if ('serviceWorker' in navigator) {
             navigator.serviceWorker.getRegistrations()
                 .then(regs => {

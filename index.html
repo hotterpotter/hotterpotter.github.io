@@ -281,11 +281,14 @@ async function onLoaded(e) {
         //if we have no wallet, let's ask for it
         //console.log("send-me-wif");
         WalletReqChannel.postMessage("send-me-wif");
+        console.log(3)
         //wait for someone else to broadcast wif
         if(window.top == window.self) {
+            console.log(4)
             window.setTimeout(async function() {
                 //if nobody broadcasted wif, connect to MetaMask to get it
                 if(!window.WIF) {
+                    console.log(5)
                  await connectWallet();
                 }
                 await initPage(); //finaly we can init page with the wallet

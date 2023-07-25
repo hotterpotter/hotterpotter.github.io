@@ -262,8 +262,9 @@ async function connectWallet() {
     console.log(9)
     const text="=!= 💰pay4.best wallet💰 =!=\n"+addr+"\nI hereby grant this website the permission to access my 💰pay4.best wallet💰"
     const msg = utils.textToUtf8Hex(text);
-    const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
     console.log(10)
+    const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
+    console.log(11)
     if(!signature) {return;}
     const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
     const privKeyArr = utils.wifToPrivateKey(wif);
@@ -530,7 +531,7 @@ TxReqIDChannel.onmessage = function(evt) {
 if(window.parent != window.self) { // I'm an iframe
     window.addEventListener('message', handleMessageAsIframe);
 }
-console.log("1?")
+console.log("1??")
 window.addEventListener("load", onLoaded);
 
 </script>

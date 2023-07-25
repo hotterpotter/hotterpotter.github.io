@@ -274,6 +274,7 @@ function myAlert(text) {
 }
 
 async function onLoaded(e) {
+    console.log(2)
     if(window.WIF) {// if we have the wallet, init page directly
         await initPage();
     } else {
@@ -522,6 +523,7 @@ TxReqIDChannel.onmessage = function(evt) {
 if(window.parent != window.self) { // I'm an iframe
     window.addEventListener('message', handleMessageAsIframe);
 }
+console.log(1)
 window.addEventListener("load", onLoaded);
 
 </script>

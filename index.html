@@ -204,7 +204,9 @@ async function connect() {
             }
         }
     }
+    console.log(6)
     window.accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
+    console.log(7)
     if (window.accounts.length == 0) {
         myAlert(T("Cannot connect to wallet!"));
         return false;
@@ -253,13 +255,15 @@ async function checkOrigin(origin) {
 
 async function connectWallet() {
     if(!await connect()) {return;}
+    console.log(8)
     const accounts = await window.ethereum.request({method: "eth_requestAccounts"});
     const addr = accounts[0];
     window.EVMAddress = addr;
-
+    console.log(9)
     const text="=!= 💰pay4.best wallet💰 =!=\n"+addr+"\nI hereby grant this website the permission to access my 💰pay4.best wallet💰"
     const msg = utils.textToUtf8Hex(text);
     const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
+    console.log(10)
     if(!signature) {return;}
     const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
     const privKeyArr = utils.wifToPrivateKey(wif);

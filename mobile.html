@@ -1,0 +1,35 @@
+<html>
+
+<head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+</head>
+
+<body>
+    <a href="imtokenv2://navigate/DappView?url=http://192.168.8.104:8080/mobile.html?broadcasttx=123">Go to imToken
+        App</a>
+    <a href="trust://deeplink">Go to trust
+        App</a>
+    <a href='tpdapp://open?params={"url":"http://192.168.8.104:8080/mobile.html?broadcasttx=123"}'>Open TokenPocket to
+        open url</a><br />
+    <div id="TT"></div>
+    123
+</body>
+<script>
+    const params = new URL(window.location.href).searchParams;
+    const broadcasttx = params.get('broadcasttx');
+    document.querySelector("#TT").innerText = broadcasttx
+</script>
+
+</html>
+
+<!-- window.generateDappUrl = function(){
+	const dapp_url = document.getElementById('dapp_url').value.trim();
+	if(dapp_url.search("https://") !== -1){
+		const url = `${BASE_URL}/dapp/`+dapp_url.replace('https://', '');
+		renderUrl(url);
+	} else {
+		alert('The url needs to start with https://');
+	}
+} -->
+<!-- https://metamask.app.link/dapp/metamask.github.io/metamask-deeplinks/# -->

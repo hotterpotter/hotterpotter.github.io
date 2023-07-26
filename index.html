@@ -123,6 +123,12 @@ IS WITH YOU.</p>
     <p id="outputs"></p>
 </div>
 
+<div id="withGenerateUrl" style="padding: 10px; display: none">
+    <p><b>URL:</b><br> <a id="generatedUrl" onclick="copyText(event.target.text);myAlert('Copy successfully and please open it with chrome');">1321</a></p>
+    <td><canvas id="generatedUrlQR"></canvas></td></tr>
+    <p>Please copy the url and open it with chrome</p>
+</div>
+
 <div id="withBroadcastTx" style="padding: 10px; display: none">
     <div class="columns">
       <div class="column">
@@ -185,6 +191,17 @@ function IsPC() {
        return flag;
 }
 
+function copyText(text) {
+    let inputDom = document.createElement('input');
+    inputDom.setAttribute('readonly', 'readonly');
+    inputDom.value = text;
+    document.body.appendChild(inputDom);
+    inputDom.select();
+    document.execCommand('Copy');
+    inputDom.style.display = 'none';
+    inputDom.remove();
+}
+
 async function connect() {
     if (typeof window.ethereum === 'undefined') {
         if (typeof window.web3 !== 'undefined') {
@@ -204,9 +221,7 @@ async function connect() {
             }
         }
     }
-    console.log(6)
     window.accounts = await window.ethereum.request({method: 'eth_requestAccounts'});
-    console.log(7)
     if (window.accounts.length == 0) {
         myAlert(T("Cannot connect to wallet!"));
         return false;
@@ -255,27 +270,19 @@ async function checkOrigin(origin) {
 
 async function connectWallet() {
     if(!await connect()) {return;}
-    console.log(8)
     const accounts = await window.ethereum.request({method: "eth_requestAccounts"});
     const addr = accounts[0];
     window.EVMAddress = addr;
-    console.log(9)
+
     const text="=!= 💰pay4.best wallet💰 =!=\n"+addr+"\nI hereby grant this website the permission to access my 💰pay4.best wallet💰"
     const msg = utils.textToUtf8Hex(text);
-    console.log(10)
-    try {
-        const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
-        console.log(11)
-        if(!signature) {return;}
-        const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
-        const privKeyArr = utils.wifToPrivateKey(wif);
-        //console.log("H", utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh"));
-        await initWallet(wif);
-        WalletChannel.postMessage(wif);
-    } catch (error) {
-        console.log(error)
-    }
-
+    const signature = await ethereum.request({method: "personal_sign", params: [msg, addr]});
+    if(!signature) {return;}
+    const wif = utils.hexToWif(utils.hexSecretToHexPrivkey(signature.substr(2)), window.NETWORK);
+    const privKeyArr = utils.wifToPrivateKey(wif);
+    //console.log("H", utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh"));
+    await initWallet(wif);
+    WalletChannel.postMessage(wif);
 }
 
 function myAlert(text) {
@@ -284,21 +291,17 @@ function myAlert(text) {
 }
 
 async function onLoaded(e) {
-    console.log(2)
     if(window.WIF) {// if we have the wallet, init page directly
         await initPage();
     } else {
         //if we have no wallet, let's ask for it
         //console.log("send-me-wif");
         WalletReqChannel.postMessage("send-me-wif");
-        console.log(3)
         //wait for someone else to broadcast wif
         if(window.top == window.self) {
-            console.log(4)
             window.setTimeout(async function() {
                 //if nobody broadcasted wif, connect to MetaMask to get it
                 if(!window.WIF) {
-                    console.log(5)
                  await connectWallet();
                 }
                 await initPage(); //finaly we can init page with the wallet
@@ -361,6 +364,21 @@ function fillTxReq(inputs, sourceOutputs, outputs) {
     Array.from(document.querySelectorAll("#minerFee")).forEach(v => v.innerText = inputSatoshis-outputSatoshis)
 }
 
+function fillGenerateUrl(){
+    const privKeyArr = utils.wifToPrivateKey(window.WIF);
+    const cashAddr = utils.deriveCashaddr(privKeyArr, window.NETWORK, "p2pkh");
+    const params = new URL(window.location.href).searchParams;
+    const origin = params.get('generateUrl')
+    let url
+    if(origin.includes("?")) {
+        url = origin + "&wallet=" + cashAddr
+    } else {
+        url = origin + "?wallet=" + cashAddr   
+    }
+    document.getElementById("generatedUrl").innerText = url;
+    new QRious({element: document.getElementById("generatedUrlQR"), value: url});
+}
+
 async function initPage() {
     if(window.parent != window.self) {
         return; // I'm an iframe
@@ -392,7 +410,10 @@ async function initPage() {
         let outputs = utils.extractOutputs(Tx.transaction, window.NETWORK);
         fillTxReq(Tx.transaction.inputs, Tx.sourceOutputs, outputs);
         document.getElementById("withBroadcastTx").style.display = "block";
-    }  else {
+    } else if(params.get('generateUrl')) {
+        fillGenerateUrl()
+        document.getElementById("withGenerateUrl").style.display = "block";
+    } else {
         await initWithoutTxReq();
         document.getElementById("withoutTxReq").style.display = "block";
     }
@@ -536,7 +557,6 @@ TxReqIDChannel.onmessage = function(evt) {
 if(window.parent != window.self) { // I'm an iframe
     window.addEventListener('message', handleMessageAsIframe);
 }
-console.log("1?")
 window.addEventListener("load", onLoaded);
 
 </script>

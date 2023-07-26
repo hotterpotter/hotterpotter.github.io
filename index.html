@@ -25,7 +25,7 @@
     window.utils = utils;
     window.TxMap = new Map();
     const params = new URL(window.location.href).searchParams;
-    if(params.get('testnet')) {
+    if(params.get('testnet')==="true") {
         window.NETWORK = "bchtest";
     } else {
         window.NETWORK = "bitcoincash";

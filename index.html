@@ -371,9 +371,9 @@ function fillGenerateUrl(){
     const origin = params.get('generateUrl')
     let url
     if(origin.includes("?")) {
-        url = origin + "&wallet=" + cashAddr
+        url = origin + "&wallet=" + cashAddr + "&evmAddress=" + window.EVMAddress
     } else {
-        url = origin + "?wallet=" + cashAddr   
+        url = origin + "?wallet=" + cashAddr + "&evmAddress=" + window.EVMAddress
     }
     document.getElementById("generatedUrl").innerText = url;
     new QRious({element: document.getElementById("generatedUrlQR"), value: url});
